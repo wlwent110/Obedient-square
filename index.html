@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>听命令的小方块二</title>
+    <style>
+        div,canvas,body{
+            margin: 0;
+            padding: 0;
+        }
+        .block{
+            width: 50px;
+            height: 50px;
+            top: 330px;
+            left: 330px;
+            position: absolute;
+            background: linear-gradient(0deg, #f00 70%, #00f 20%);
+
+        }
+        .animation{
+            transition: all 0.5s;
+            -moz-transition: all 0.5s;
+            -webkit-transition: all 0.5s;
+            -o-transition: all 0.5s;
+        }
+      ul{
+          list-style: none;
+          position: absolute;
+          left: 50%;
+          top: 20%;
+      }
+    </style>
+</head>
+<body>
+
+<canvas width="530px" height="530px"></canvas>
+<div class="block animation">
+
+</div>
+<ul>
+    <li style="margin-bottom: 30px; color: red;">可以无限次转动哟(每次需要等待动画完成后再点击)</li>
+    <li>GO(向蓝色边前进一格)</li>
+    <li>TUN LEF(向左转)</li>
+    <li>TUN RIG(向右转)</li>
+    <li>TUN BAC(向后转)</li>
+    <li>TRA LEF(向屏幕的左侧移动一格，方向不变)</li>
+    <li>TRA TOP(向屏幕的上面移动一格，方向不变)</li>
+    <li>TRA RIG(向屏幕的右侧移动一格，方向不变)</li>
+    <li>TRA BOT(向屏幕的下面移动一格，方向不变)</li>
+    <li>MOV LEF(方向转向屏幕左侧，并向屏幕的左侧移动一格)</li>
+    <li>MOV TOP(方向转向屏幕上面，向屏幕的上面移动一格)</li>
+    <li>MOV RIG(方向转向屏幕右侧，向屏幕的右侧移动一格)</li>
+    <li>MOV BOT(方向转向屏幕下面，向屏幕的下面移动一格)</li>
+    <li style="margin-top: 30px"><select name="" id="">
+        <option value="GO">GO</option>
+        <option value="TUN LEF">TUN LEF</option>
+        <option value="TUN RIG">TUN RIG</option>
+        <option value="TUN BAC">TUN BAC</option>
+        <option value="TRA LEF">TRA LEF</option>
+        <option value="TRA TOP">TRA TOP</option>
+        <option value="TRA RIG">TRA RIG</option>
+        <option value="TRA BOT">TRA BOT</option>
+        <option value="MOV LEF">MOV LEF</option>
+        <option value="MOV TOP">MOV TOP</option>
+        <option value="MOV RIG">MOV RIG</option>
+        <option value="MOV BOT">MOV BOT</option>
+
+    </select><button>执行</button></li>
+</ul>
+
+
+
+<script>
+    var drawing=document.querySelector('canvas');
+    (function(){
+        //确定浏览器支持convas元素
+        if(drawing.getContext){
+            var context = drawing.getContext("2d")
+            //绘制路径
+            context.beginPath();
+            //绘制文本
+            context.font = "bold 14px Arial";
+            context.textAlign = "center";
+            context.textBaseline = "middle";
+            //绘制
+            for( i = 30, j = 1; i <=530; i = i + 50, j++){
+                context.moveTo(30, i);
+                context.lineTo(530, i);
+                context.moveTo(i, 30);
+                context.lineTo(i,530);
+                if(j <= 10){
+                    context.fillText(j,i+25,15);
+                    context.fillText(j,15,i+25);
+                }
+            }
+            //描边路径
+            context.stroke() ;
+        }
+    })();
+    var trans;
+    var t1;
+    var flag=false;
+    var btn=document.querySelector('button');
+    var block=document.querySelector('.block');
+    var select=document.querySelector('select');
+    //向下、向右,向上、向左
+    arrDirection=[['top','0deg'],['left'],['bottom'],['right']];
+    //向右转，向后转，向左转
+    arrRotateDeg=[[90,'TUN RIG'],[180,'TUN BAC'],[-90,'TUN LEF'],['','GO'],['left','TRA LEF',-1,'offsetLeft'],['top','TRA TOP',-1,'offsetTop'],['left','TRA RIG',1,'offsetLeft'],['top','TRA BOT',1,'offsetTop']
+    ,['rotate(-90deg)','MOV LEF'],['rotate(0deg)','MOV TOP'],['rotate(90deg)','MOV RIG'],['rotate(180deg)','MOV BOT']];
+    block.style.webkitTransform='rotate(0deg)';
+    var arrTrans=['transform','msTransform','webkitTransform','mozTransform'];
+    for(var i=0;i<arrTrans.length;i++){
+        if(block.style[arrTrans[i]]!=null){
+            trans=arrTrans[i];
+            break;
+        }
+    }
+
+function rotate(ele,command) {
+        clearTimeout(t1);
+        if(!flag){
+            flag=true
+
+
+            ele.className='block animation';
+
+            var eleRotate=parseInt(ele.style[trans].match(/\-?\d+/)[0]) ;
+            for(var i=0;i<arrRotateDeg.length;i++){
+
+                if(command==arrRotateDeg[i][1]){
+                    if(i<=2){
+
+                        var rotateDeg=eleRotate+arrRotateDeg[i][0];
+
+                        ele.style[trans]='rotate('+rotateDeg+'deg)';
+
+                        setTimeout(function () {
+                            if(parseInt (ele.style[trans].match(/\-?\d+/)[0])>=360||parseInt (ele.style[trans].match(/\-?\d+/)[0])<=-360){
+                                ele.className='block';
+                                var chaDeg=parseInt (ele.style[trans].match(/\-?\d+/)[0])>0?parseInt (ele.style[trans].match(/\-?\d+/)[0])-360:parseInt (ele.style[trans].match(/\-?\d+/)[0])+360;
+                                ele.style[trans]='rotate('+chaDeg+'deg)';
+
+                            }
+                        },500);
+
+                    }if(i==3){
+                        move(ele,eleRotate);
+                    }if(i>=4&&i<=7){
+                        if(arrRotateDeg[i][2]<0){
+
+                            if(ele[arrRotateDeg[i][3]]+50*arrRotateDeg[i][2]>=30){
+                                ele.style[arrRotateDeg[i][0]]=ele[arrRotateDeg[i][3]]+50*arrRotateDeg[i][2]+'px';
+                            }else {
+                                alert('撞到啦');
+                            }
+
+                        }
+                        if(arrRotateDeg[i][2]>0){
+
+                            if(ele[arrRotateDeg[i][3]]+50*arrRotateDeg[i][2]<=480){
+                                ele.style[arrRotateDeg[i][0]]=ele[arrRotateDeg[i][3]]+50*arrRotateDeg[i][2]+'px';
+                            }else {
+                                alert('撞到啦');
+                            }
+
+                        }
+
+                    }if(i>=8&&i<=11){
+                        if( ele.style[trans]==arrRotateDeg[i][0]){
+                            move(ele,parseInt(ele.style[trans].match(/\-?\d+/)[0]));
+                        }else {
+                            ele.style[trans]=arrRotateDeg[i][0];
+                            setTimeout(function () {
+                                move(ele,parseInt(ele.style[trans].match(/\-?\d+/)[0]));
+                            },500);
+                        }
+
+
+                    }
+
+                }
+
+
+            }
+
+        }
+
+   t1= setTimeout(function () {
+        flag=false
+    },500)
+
+}
+ function move(ele,eleRotate) {
+
+     switch (eleRotate){
+         case 0:
+             if((ele.offsetTop-50)>=30){
+                 ele.style.top=(ele.offsetTop-50)+'px';
+             }else {
+
+                 alert('撞了呀');
+             }
+
+             break;
+         case 180:
+         case -180:
+             if((ele.offsetTop+50)<=480){
+                 ele.style.top=(ele.offsetTop+50)+'px';
+             }else {
+
+                 alert('撞了呀');
+             }
+
+             break;
+         case -90:
+         case 270:
+             if(ele.offsetLeft-50>=30){
+                 ele.style.left=(ele.offsetLeft-50)+'px'
+             }else {
+                 alert('撞了呀');
+             }
+
+             break;
+         case 90:
+         case -270:
+             if(ele.offsetLeft+50<=480){
+                 ele.style.left=(ele.offsetLeft+50)+'px'
+             }else {
+                 alert('撞了呀');
+             }
+
+             break;
+     }
+ }
+
+    btn.onclick=function (e) {
+
+        rotate(block,select.value);
+
+    }
+    function getElementLeft(element){
+        var actualLeft = element.offsetLeft;
+        var current = element.offsetParent;
+        while (current !== null){
+            actualLeft += current.offsetLeft;
+            current = current.offsetParent;
+        }
+        return actualLeft;
+    }
+    function getElementTop(element){
+        var actualTop = element.offsetTop;
+        var current = element.offsetParent;
+        while (current !== null){
+            actualTop += current.offsetTop;
+            current = current.offsetParent;
+        }
+        return actualTop;
+    }
+
+</script>
+</body>
+</html>
